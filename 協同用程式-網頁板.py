@@ -258,3 +258,19 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# ======== 進階版：音樂點歌機 ========
+        st.divider()
+        st.subheader("🎵 測驗電台")
+        
+        # 自動掃描資料夾內所有的 .mp3 檔案
+        mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
+        
+        if mp3_files:
+            # 建立一個下拉選單讓使用者「點歌」
+            selected_song = st.selectbox("選擇歌曲：", mp3_files)
+            
+            # 播放使用者選中的那首歌
+            st.audio(selected_song, format="audio/mp3", loop=True)
+        else:
+            st.caption("找不到任何 MP3 音樂檔案")
