@@ -82,7 +82,7 @@ def main():
     with st.sidebar:
         
         # ======== 進階版：音樂點歌機 (移到最上方) ========
-        st.header("🎵 測驗電台")
+        st.header("🎵 阿逄有聲電台")
         
         # 自動掃描資料夾內所有的 .mp3 檔案
         mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
