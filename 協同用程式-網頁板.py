@@ -53,13 +53,19 @@ def format_display_text(text):
 def main():
     st.set_page_config(page_title="戰術題庫 測驗系統", page_icon="🎯", layout="wide")
     
-    # ====== 魔法 CSS：強制縮窄側邊欄寬度 ======
+    # ====== 魔法 CSS：修復側邊欄隱藏與主畫面延伸問題 ======
     st.markdown("""
         <style>
-            /* 將側邊欄的寬度進一步縮小到 150px */
+            /* 1. 讓側邊欄最寬只能是 150px，但保留它「縮小到 0 (隱藏)」的能力 */
             [data-testid="stSidebar"] {
-                min-width: 150px !important;
                 max-width: 150px !important;
+            }
+            
+            /* 2. 強制主畫面區塊伸展到最大，吃掉隱藏側邊欄後剩下的所有空白 */
+            .block-container {
+                max-width: 100% !important;
+                padding-left: 2rem !important;
+                padding-right: 2rem !important;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -169,7 +175,6 @@ def main():
         with st.sidebar:
             st.header("🛗 導覽")
             
-            # TOP 與 END 上下排列
             st.markdown("""
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
                 <a href="#nav-settings" style="text-align: center; padding: 10px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">🔼 TOP</a>
