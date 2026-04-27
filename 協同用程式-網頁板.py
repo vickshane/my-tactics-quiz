@@ -88,7 +88,6 @@ def main():
         color: #000;
         border-color: #bbb;
     }
-    /* 自動適應深色模式 */
     @media (prefers-color-scheme: dark) {
         .floating-stairs {
             background-color: rgba(30, 30, 30, 0.85);
@@ -148,15 +147,33 @@ def main():
         st.subheader("⚙️ 測驗與音樂設定面板")
         col_music, col_quiz = st.columns([1, 2])
         
+        # 🎵 音樂電台區塊 (大幅升級)
         with col_music:
             st.markdown("##### 🎵 測驗電台")
-            mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
-            if mp3_files:
-                selected_song = st.selectbox("選擇歌曲：", mp3_files)
-                st.audio(selected_song, format="audio/mp3", loop=True)
-            else:
-                st.caption("找不到任何 MP3 音樂檔案")
+            music_mode = st.radio("選擇音樂來源：", ["本機 MP3", "YouTube 連續播放"], horizontal=True, label_visibility="collapsed")
+            
+            if music_mode == "本機 MP3":
+                mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
+                if mp3_files:
+                    selected_song = st.selectbox("選擇歌曲：", mp3_files)
+                    # 💡 加上 autoplay=True，只要使用者點擊網頁任一處就會自動開始播
+                    st.audio(selected_song, format="audio/mp3", autoplay=True, loop=True)
+                    st.caption("⚠️ 受限於網頁技術，MP3 無法自動切換下一首，建議將歌曲合併成一首長檔。")
+                else:
+                    st.caption("找不到任何 MP3 音樂檔案")
+                    
+            elif music_mode == "YouTube 連續播放":
+                st.caption("完美支援連續播放！請輸入 YouTube 影片代碼：")
+                # 預設一首適合讀書的 Lo-Fi 輕音樂
+                yt_id = st.text_input("YouTube ID (預設為 Lofi 讀書音樂)", value="jfKfPfyJRdk")
+                if yt_id:
+                    # 利用 iframe 嵌入 YouTube，並強制開啟自動播放 (autoplay=1) 與循環播放 (loop=1)
+                    iframe_code = f"""
+                    <iframe width="100%" height="100" src="https://www.youtube.com/embed/{yt_id}?autoplay=1&loop=1&playlist={yt_id}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    """
+                    st.markdown(iframe_code, unsafe_allow_html=True)
                 
+        # 📚 測驗設定區塊
         with col_quiz:
             st.markdown("##### 📚 題庫與模式設定")
             selected_bank = st.selectbox("選擇班隊 (題庫)：", list(bank_mapping.keys()), label_visibility="collapsed")
@@ -210,7 +227,6 @@ def main():
     if display_mode == "全部顯示":
         st.subheader(f"📝 全部顯示模式 (共 {total_q} 題)")
         
-        # 為了避免右側選單太長，如果題目很多，在左側邊欄保留跳躍到特定題目的功能
         with st.sidebar:
             st.header("📝 跳至特定題目")
             st.info("點擊下方數字快速跳轉")
@@ -220,7 +236,6 @@ def main():
             st.markdown(" ｜ ".join(nav_links))
         
         for idx, q in enumerate(st.session_state.test_questions, 1):
-            # ====== 替每一題埋設隱形錨點 ======
             st.markdown(f"<div id='nav-q-{q['id']}'></div>", unsafe_allow_html=True)
             
             with st.container(border=True):
