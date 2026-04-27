@@ -44,13 +44,12 @@ def check_answer(user_input, correct_answer):
         
     return False, ""
 
-# ====== 新增：自動分行排版函式 ======
+# ====== 自動分行排版函式 ======
 def format_display_text(text):
     """
     將答案中的條列式項目 (如 1、 2.) 自動分行，以利閱讀。
     使用正規表示式尋找「數字+、」或「數字+.」，並在前面強制換行。
     """
-    # \s* 代表可能存在的空白，\d+ 代表數字，[、.] 代表頓號或小數點
     formatted = re.sub(r'\s*(\d+[、.])', r'\n\n\1', text)
     return formatted.strip()
 # ====================================
@@ -81,6 +80,25 @@ def main():
     # 左側邊欄：測驗設定
     # ==========================================
     with st.sidebar:
+        
+        # ======== 進階版：音樂點歌機 (移到最上方) ========
+        st.header("🎵 測驗電台")
+        
+        # 自動掃描資料夾內所有的 .mp3 檔案
+        mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
+        
+        if mp3_files:
+            # 建立一個下拉選單讓使用者「點歌」
+            selected_song = st.selectbox("選擇歌曲：", mp3_files)
+            
+            # 播放使用者選中的那首歌
+            st.audio(selected_song, format="audio/mp3", loop=True)
+        else:
+            st.caption("找不到任何 MP3 音樂檔案")
+            
+        st.divider()
+        # ===============================================
+
         st.header("⚙️ 測驗設定")
         selected_bank = st.selectbox("📚 選擇班隊 (題庫)", list(bank_mapping.keys()))
         selected_file = bank_mapping[selected_bank]
@@ -160,12 +178,10 @@ def main():
                                 st.success(f"✅ {msg}")
                             else:
                                 st.error("❌ 答錯了！")
-                                # 這裡套用排版函式
                                 st.info(f"📌 **標準答案：**\n\n{format_display_text(q['answer'])}")
                 
                 if not submit_q:
                     with st.expander("👁️ 快速查看標準答案"):
-                        # 這裡套用排版函式
                         st.write(format_display_text(q['answer']))
 
     # ------------------------------------------
@@ -207,7 +223,6 @@ def main():
                                 st.session_state.score += 1
                                 st.session_state.feedback = f"✅ **答對了！** {msg}"
                             else:
-                                # 這裡套用排版函式
                                 st.session_state.feedback = f"❌ **答錯了！**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
                             
                             st.session_state.has_answered = True
@@ -220,10 +235,8 @@ def main():
                     st.rerun()
 
             with st.expander("🫣 想不起來？點我偷看答案 (不計分)"):
-                # 這裡套用排版函式
                 st.info(format_display_text(current_q['answer']))
                 if st.button("⏭️ 直接跳下一題"):
-                    # 這裡套用排版函式
                     st.session_state.feedback = f"⏭️ **已跳過該題。**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
                     st.session_state.current_idx += 1
                     st.session_state.has_answered = False
@@ -242,7 +255,6 @@ def main():
             st.markdown(f"### 🤔 {st.session_state.flashcard_q['question']}")
             st.divider()
             if st.session_state.flashcard_flipped:
-                # 這裡套用排版函式
                 st.success(f"**標準答案：**\n\n{format_display_text(st.session_state.flashcard_q['answer'])}")
             else:
                 st.write("\n\n*(默念答案後點擊翻開)*\n\n")
@@ -257,20 +269,6 @@ def main():
                 st.session_state.flashcard_q = random.choice(st.session_state.test_questions)
                 st.session_state.flashcard_flipped = False
                 st.rerun()
-# ======== 進階版：音樂點歌機 ========
-        st.divider()
-        st.subheader("🎵 測驗電台")
-        
-        # 自動掃描資料夾內所有的 .mp3 檔案
-        mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
-        
-        if mp3_files:
-            # 建立一個下拉選單讓使用者「點歌」
-            selected_song = st.selectbox("選擇歌曲：", mp3_files)
-            
-            # 播放使用者選中的那首歌
-            st.audio(selected_song, format="audio/mp3", loop=True)
-        else:
-            st.caption("找不到任何 MP3 音樂檔案")
+
 if __name__ == "__main__":
     main()
