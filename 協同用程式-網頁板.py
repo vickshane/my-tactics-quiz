@@ -76,76 +76,82 @@ def main():
         st.session_state.current_bank_name = ""
         st.session_state.has_answered = False 
 
-    # ==========================================
-    # 左側邊欄：測驗設定
-    # ==========================================
-    with st.sidebar:
-        
-        # ======== 進階版：音樂點歌機 (移到最上方) ========
-        st.header("🎵 阿逄有聲電台")
-        
-        # 自動掃描資料夾內所有的 .mp3 檔案
-        mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
-        
-        if mp3_files:
-            # 建立一個下拉選單讓使用者「點歌」
-            selected_song = st.selectbox("選擇歌曲：", mp3_files)
-            
-            # 播放使用者選中的那首歌
-            st.audio(selected_song, format="audio/mp3", loop=True)
-        else:
-            st.caption("找不到任何 MP3 音樂檔案")
-            
-        st.divider()
-        # ===============================================
-
-        st.header("⚙️ 測驗設定")
-        selected_bank = st.selectbox("📚 選擇班隊 (題庫)", list(bank_mapping.keys()))
-        selected_file = bank_mapping[selected_bank]
-        all_questions = load_questions_from_file(selected_file)
-        
-        st.caption(f"當前題庫共有： {len(all_questions)} 題")
-        st.divider()
-        
-        st.subheader("選擇範圍")
-        col1, col2 = st.columns(2)
-        max_q = len(all_questions) if all_questions else 1
-        with col1:
-            start_id = st.number_input("起 (題號)", min_value=1, max_value=max_q, value=1)
-        with col2:
-            end_id = st.number_input("迄 (題號)", min_value=1, max_value=max_q, value=max_q)
-
-        st.divider()
-
-        st.subheader("選擇模式")
-        is_shuffle = st.checkbox("🎲 亂序排列", value=False)
-        display_mode = st.radio("顯示模式：", ["逐題顯示", "全部顯示", "字卡模式"], index=0)
-
-        if st.button("🚀 載入 / 重置題目", use_container_width=True, type="primary"):
-            filtered = [q for q in all_questions if start_id <= q['id'] <= end_id]
-            if filtered:
-                if is_shuffle: random.shuffle(filtered)
-                st.session_state.test_questions = filtered
-                st.session_state.current_bank_name = selected_bank
-                st.session_state.current_idx = 0
-                st.session_state.score = 0
-                st.session_state.feedback = ""
-                st.session_state.all_inputs = {}
-                st.session_state.has_answered = False 
-            else:
-                st.warning("該範圍內無題目！")
-            st.rerun()
-
-    # ==========================================
-    # 主畫面區塊
-    # ==========================================
+    # 顯示大標題
     if st.session_state.current_bank_name:
         st.title(f"🎯 {st.session_state.current_bank_name}")
     else:
         st.title("🎯 兵科題庫 測驗系統")
 
+    # ==========================================
+    # 上方設定面板 (取代原本的左側邊欄)
+    # ==========================================
+    with st.container(border=True):
+        st.subheader("⚙️ 測驗與音樂設定面板")
+        
+        # 將設定區塊分為左右兩欄 (比例 1:2)
+        col_music, col_quiz = st.columns([1, 2])
+        
+        # 左邊欄位：音樂電台
+        with col_music:
+            st.markdown("##### 🎵 測驗電台")
+            mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
+            
+            if mp3_files:
+                selected_song = st.selectbox("選擇歌曲：", mp3_files)
+                st.audio(selected_song, format="audio/mp3", loop=True)
+            else:
+                st.caption("找不到任何 MP3 音樂檔案")
+                
+        # 右邊欄位：題庫與範圍設定
+        with col_quiz:
+            st.markdown("##### 📚 題庫與模式設定")
+            
+            # 第一排：選擇題庫
+            selected_bank = st.selectbox("選擇班隊 (題庫)：", list(bank_mapping.keys()), label_visibility="collapsed")
+            selected_file = bank_mapping[selected_bank]
+            all_questions = load_questions_from_file(selected_file)
+            
+            # 第二排：範圍與亂序
+            col_q1, col_q2, col_q3 = st.columns([1, 1, 1])
+            max_q = len(all_questions) if all_questions else 1
+            with col_q1:
+                start_id = st.number_input("起 (題號)", min_value=1, max_value=max_q, value=1)
+            with col_q2:
+                end_id = st.number_input("迄 (題號)", min_value=1, max_value=max_q, value=max_q)
+            with col_q3:
+                # 為了對齊高度，加上一些空白
+                st.write("")
+                st.write("")
+                is_shuffle = st.checkbox("🎲 亂序排列", value=False)
+
+            # 第三排：顯示模式與載入按鈕
+            col_m1, col_m2 = st.columns([3, 2])
+            with col_m1:
+                display_mode = st.radio("顯示模式：", ["逐題顯示", "全部顯示", "字卡模式"], index=0, horizontal=True)
+            with col_m2:
+                # 這裡的按鈕直接觸發重置與載入
+                if st.button("🚀 載入 / 重置題目", use_container_width=True, type="primary"):
+                    filtered = [q for q in all_questions if start_id <= q['id'] <= end_id]
+                    if filtered:
+                        if is_shuffle: random.shuffle(filtered)
+                        st.session_state.test_questions = filtered
+                        st.session_state.current_bank_name = selected_bank
+                        st.session_state.current_idx = 0
+                        st.session_state.score = 0
+                        st.session_state.feedback = ""
+                        st.session_state.all_inputs = {}
+                        st.session_state.has_answered = False 
+                    else:
+                        st.warning("該範圍內無題目！")
+                    st.rerun()
+
+    st.divider()
+
+    # ==========================================
+    # 主畫面測驗區塊
+    # ==========================================
     if not st.session_state.test_questions:
-        st.info("👈 請在左側設定後開始測驗。")
+        st.info("👆 請在上方設定面板選擇範圍與模式，然後點擊「載入 / 重置題目」開始測驗。")
         return
 
     total_q = len(st.session_state.test_questions)
