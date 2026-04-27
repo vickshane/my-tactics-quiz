@@ -53,6 +53,68 @@ def format_display_text(text):
 def main():
     st.set_page_config(page_title="戰術題庫 測驗系統", page_icon="🎯", layout="wide")
     
+    # ==========================================
+    # 🛗 注入 HTML/CSS 建立右下角懸浮電梯
+    # ==========================================
+    st.markdown("""
+    <style>
+    .floating-stairs {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 9999;
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+    }
+    .floating-stairs a {
+        text-decoration: none;
+        color: #555;
+        font-weight: bold;
+        font-size: 16px;
+        text-align: center;
+        padding: 10px 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        background-color: #fafafa;
+        transition: all 0.2s ease;
+    }
+    .floating-stairs a:hover {
+        background-color: #ececec;
+        color: #000;
+        border-color: #bbb;
+    }
+    /* 自動適應深色模式 */
+    @media (prefers-color-scheme: dark) {
+        .floating-stairs {
+            background-color: rgba(30, 30, 30, 0.85);
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.6);
+        }
+        .floating-stairs a {
+            color: #ddd;
+            background-color: #2b2b2b;
+            border-color: #444;
+        }
+        .floating-stairs a:hover {
+            background-color: #444;
+            color: #fff;
+            border-color: #666;
+        }
+    }
+    </style>
+    
+    <div class="floating-stairs">
+        <a href="#nav-settings">⚙️ 設定</a>
+        <a href="#nav-settings">🔼 TOP</a>
+        <a href="#nav-end">🔽 END</a>
+    </div>
+    """, unsafe_allow_html=True)
+    # ==========================================
+
     txt_files = [f for f in os.listdir('.') if f.endswith('.txt') and f != 'requirements.txt']
     if not txt_files:
         st.error("⚠️ 找不到任何 `.txt` 題庫檔案。")
@@ -71,11 +133,9 @@ def main():
         st.session_state.current_bank_name = ""
         st.session_state.has_answered = False 
 
-    # ====== 埋設最上方的隱形錨點 ======
+    # ====== 埋設最上方的隱形錨點 (TOP) ======
     st.markdown("<div id='nav-settings'></div>", unsafe_allow_html=True)
-    # =================================
 
-    # 顯示大標題
     if st.session_state.current_bank_name:
         st.title(f"🎯 {st.session_state.current_bank_name}")
     else:
@@ -86,13 +146,11 @@ def main():
     # ==========================================
     with st.container(border=True):
         st.subheader("⚙️ 測驗與音樂設定面板")
-        
         col_music, col_quiz = st.columns([1, 2])
         
         with col_music:
             st.markdown("##### 🎵 測驗電台")
             mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
-            
             if mp3_files:
                 selected_song = st.selectbox("選擇歌曲：", mp3_files)
                 st.audio(selected_song, format="audio/mp3", loop=True)
@@ -101,7 +159,6 @@ def main():
                 
         with col_quiz:
             st.markdown("##### 📚 題庫與模式設定")
-            
             selected_bank = st.selectbox("選擇班隊 (題庫)：", list(bank_mapping.keys()), label_visibility="collapsed")
             selected_file = bank_mapping[selected_bank]
             all_questions = load_questions_from_file(selected_file)
@@ -139,31 +196,6 @@ def main():
     st.divider()
 
     # ==========================================
-    # 🛗 左側電梯導覽 (快速樓梯)
-    # 放在設定面板之後讀取，才能抓到最新的 display_mode 和題目
-    # ==========================================
-    with st.sidebar:
-        st.header("🛗 快速導覽 (樓梯)")
-        st.info("💡 點擊下方連結即可快速跳轉！")
-        
-        # 固定提供回到最上方的按鈕
-        st.markdown("### 🔝 [回最上方 (設定面板)](#nav-settings)", unsafe_allow_html=True)
-        
-        # 如果是「全部顯示」模式且有題目，才顯示各題目的跳轉連結
-        if st.session_state.test_questions and display_mode == "全部顯示":
-            st.divider()
-            st.markdown("### 📝 跳至特定題目")
-            
-            # 將題號變成超連結陣列
-            nav_links = []
-            for idx, q in enumerate(st.session_state.test_questions, 1):
-                # 這裡顯示的是測驗的「順序第幾題」，並用標籤連到原題號
-                nav_links.append(f"[{idx}](#nav-q-{q['id']})")
-                
-            # 用 markdown 顯示成一個漂亮的數字排版陣列
-            st.markdown(" ｜ ".join(nav_links))
-
-    # ==========================================
     # 主畫面測驗區塊
     # ==========================================
     if not st.session_state.test_questions:
@@ -178,11 +210,18 @@ def main():
     if display_mode == "全部顯示":
         st.subheader(f"📝 全部顯示模式 (共 {total_q} 題)")
         
+        # 為了避免右側選單太長，如果題目很多，在左側邊欄保留跳躍到特定題目的功能
+        with st.sidebar:
+            st.header("📝 跳至特定題目")
+            st.info("點擊下方數字快速跳轉")
+            nav_links = []
+            for idx, q in enumerate(st.session_state.test_questions, 1):
+                nav_links.append(f"[{idx}](#nav-q-{q['id']})")
+            st.markdown(" ｜ ".join(nav_links))
+        
         for idx, q in enumerate(st.session_state.test_questions, 1):
-            
             # ====== 替每一題埋設隱形錨點 ======
             st.markdown(f"<div id='nav-q-{q['id']}'></div>", unsafe_allow_html=True)
-            # =================================
             
             with st.container(border=True):
                 st.markdown(f"**第 {idx} 題** (原題號: {q['id']})")
@@ -225,49 +264,48 @@ def main():
                 st.session_state.feedback = ""
                 st.session_state.has_answered = False
                 st.rerun()
-            return
-
-        current_q = st.session_state.test_questions[st.session_state.current_idx]
-        st.progress(st.session_state.current_idx / total_q, text=f"進度：{st.session_state.current_idx + 1} / {total_q}")
-        
-        with st.container(border=True):
-            st.subheader(f"💡 題目：{current_q['question']}")
-            st.caption(f"原題號：{current_q['id']}")
+        else:
+            current_q = st.session_state.test_questions[st.session_state.current_idx]
+            st.progress(st.session_state.current_idx / total_q, text=f"進度：{st.session_state.current_idx + 1} / {total_q}")
             
-            if st.session_state.feedback:
-                if "✅" in st.session_state.feedback: st.success(st.session_state.feedback)
-                else: st.error(st.session_state.feedback)
+            with st.container(border=True):
+                st.subheader(f"💡 題目：{current_q['question']}")
+                st.caption(f"原題號：{current_q['id']}")
+                
+                if st.session_state.feedback:
+                    if "✅" in st.session_state.feedback: st.success(st.session_state.feedback)
+                    else: st.error(st.session_state.feedback)
 
-            if not st.session_state.has_answered:
-                with st.form(key='one_by_one_form', clear_on_submit=False):
-                    user_ans = st.text_area("📝 輸入答案：", height=100)
-                    if st.form_submit_button("📤 送出答案"):
-                        if not user_ans.strip():
-                            st.warning("請先輸入答案再送出喔！")
-                        else:
-                            is_correct, msg = check_answer(user_ans, current_q['answer'])
-                            if is_correct:
-                                st.session_state.score += 1
-                                st.session_state.feedback = f"✅ **答對了！** {msg}"
+                if not st.session_state.has_answered:
+                    with st.form(key='one_by_one_form', clear_on_submit=False):
+                        user_ans = st.text_area("📝 輸入答案：", height=100)
+                        if st.form_submit_button("📤 送出答案"):
+                            if not user_ans.strip():
+                                st.warning("請先輸入答案再送出喔！")
                             else:
-                                st.session_state.feedback = f"❌ **答錯了！**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
-                            
-                            st.session_state.has_answered = True
-                            st.rerun()
-            else:
-                if st.button("⏭️ 前往下一題", type="primary", use_container_width=True):
-                    st.session_state.current_idx += 1
-                    st.session_state.has_answered = False
-                    st.session_state.feedback = ""
-                    st.rerun()
+                                is_correct, msg = check_answer(user_ans, current_q['answer'])
+                                if is_correct:
+                                    st.session_state.score += 1
+                                    st.session_state.feedback = f"✅ **答對了！** {msg}"
+                                else:
+                                    st.session_state.feedback = f"❌ **答錯了！**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
+                                
+                                st.session_state.has_answered = True
+                                st.rerun()
+                else:
+                    if st.button("⏭️ 前往下一題", type="primary", use_container_width=True):
+                        st.session_state.current_idx += 1
+                        st.session_state.has_answered = False
+                        st.session_state.feedback = ""
+                        st.rerun()
 
-            with st.expander("🫣 想不起來？點我偷看答案 (不計分)"):
-                st.info(format_display_text(current_q['answer']))
-                if st.button("⏭️ 直接跳下一題"):
-                    st.session_state.feedback = f"⏭️ **已跳過該題。**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
-                    st.session_state.current_idx += 1
-                    st.session_state.has_answered = False
-                    st.rerun()
+                with st.expander("🫣 想不起來？點我偷看答案 (不計分)"):
+                    st.info(format_display_text(current_q['answer']))
+                    if st.button("⏭️ 直接跳下一題"):
+                        st.session_state.feedback = f"⏭️ **已跳過該題。**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
+                        st.session_state.current_idx += 1
+                        st.session_state.has_answered = False
+                        st.rerun()
 
     # ------------------------------------------
     # 模式 C：字卡模式
@@ -296,6 +334,9 @@ def main():
                 st.session_state.flashcard_q = random.choice(st.session_state.test_questions)
                 st.session_state.flashcard_flipped = False
                 st.rerun()
+
+    # ====== 埋設最底下的隱形錨點 (END) ======
+    st.markdown("<div id='nav-end'></div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
