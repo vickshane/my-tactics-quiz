@@ -4,7 +4,6 @@ import re
 import os
 import difflib
 
-
 # --- 1. 核心邏輯函式 ---
 def load_questions_from_file(filename):
     questions_data = []
@@ -27,32 +26,39 @@ def load_questions_from_file(filename):
                     continue
     return questions_data
 
-
 def normalize_text(text):
     text = re.sub(r'\d+[、.]\s*', '', text)
-    text = re.sub(r'\W', '', text)
+    text = re.sub(r'[^\w]', '', text)
     return text
-
 
 def check_answer(user_input, correct_answer):
     norm_user = normalize_text(user_input)
     norm_ans = normalize_text(correct_answer)
-
+    
     if norm_ans in norm_user:
         return True, "完全正確！"
-
+        
     similarity = difflib.SequenceMatcher(None, norm_ans, norm_user).ratio()
     if similarity >= 0.8:
         return True, f"算你對！(相似度 {similarity:.0%}，有少許錯漏字)"
-
+        
     return False, ""
 
+# ====== 新增：自動分行排版函式 ======
+def format_display_text(text):
+    """
+    將答案中的條列式項目 (如 1、 2.) 自動分行，以利閱讀。
+    使用正規表示式尋找「數字+、」或「數字+.」，並在前面強制換行。
+    """
+    # \s* 代表可能存在的空白，\d+ 代表數字，[、.] 代表頓號或小數點
+    formatted = re.sub(r'\s*(\d+[、.])', r'\n\n\1', text)
+    return formatted.strip()
+# ====================================
 
 # --- 2. 網頁介面與狀態管理 ---
 def main():
     st.set_page_config(page_title="戰術題庫 測驗系統", page_icon="🎯", layout="wide")
-
-    # 掃描題庫檔案
+    
     txt_files = [f for f in os.listdir('.') if f.endswith('.txt') and f != 'requirements.txt']
     if not txt_files:
         st.error("⚠️ 找不到任何 `.txt` 題庫檔案。")
@@ -69,7 +75,7 @@ def main():
         st.session_state.flashcard_flipped = False
         st.session_state.all_inputs = {}
         st.session_state.current_bank_name = ""
-        st.session_state.has_answered = False  # 新增：紀錄當前這題是否已經送出答案
+        st.session_state.has_answered = False 
 
     # ==========================================
     # 左側邊欄：測驗設定
@@ -79,10 +85,10 @@ def main():
         selected_bank = st.selectbox("📚 選擇班隊 (題庫)", list(bank_mapping.keys()))
         selected_file = bank_mapping[selected_bank]
         all_questions = load_questions_from_file(selected_file)
-
+        
         st.caption(f"當前題庫共有： {len(all_questions)} 題")
         st.divider()
-
+        
         st.subheader("選擇範圍")
         col1, col2 = st.columns(2)
         max_q = len(all_questions) if all_questions else 1
@@ -107,7 +113,7 @@ def main():
                 st.session_state.score = 0
                 st.session_state.feedback = ""
                 st.session_state.all_inputs = {}
-                st.session_state.has_answered = False  # 重置作答狀態
+                st.session_state.has_answered = False 
             else:
                 st.warning("該範圍內無題目！")
             st.rerun()
@@ -127,23 +133,23 @@ def main():
     total_q = len(st.session_state.test_questions)
 
     # ------------------------------------------
-    # 模式 A：全部顯示 (每一題都有獨立送出按鈕)
+    # 模式 A：全部顯示
     # ------------------------------------------
     if display_mode == "全部顯示":
         st.subheader(f"📝 全部顯示模式 (共 {total_q} 題)")
-
+        
         for idx, q in enumerate(st.session_state.test_questions, 1):
             with st.container(border=True):
                 st.markdown(f"**第 {idx} 題** (原題號: {q['id']})")
                 st.write(f"💡 **{q['question']}**")
-
+                
                 input_key = f"input_{st.session_state.current_bank_name}_{q['id']}"
                 saved_val = st.session_state.all_inputs.get(input_key, "")
-
+                
                 with st.form(key=f"form_{q['id']}", clear_on_submit=False):
                     user_val = st.text_area("您的答案：", value=saved_val, height=80)
                     submit_q = st.form_submit_button("📤 送出答案")
-
+                    
                     if submit_q:
                         st.session_state.all_inputs[input_key] = user_val
                         if not user_val.strip():
@@ -154,14 +160,16 @@ def main():
                                 st.success(f"✅ {msg}")
                             else:
                                 st.error("❌ 答錯了！")
-                                st.info(f"📌 標準答案：{q['answer']}")
-
+                                # 這裡套用排版函式
+                                st.info(f"📌 **標準答案：**\n\n{format_display_text(q['answer'])}")
+                
                 if not submit_q:
                     with st.expander("👁️ 快速查看標準答案"):
-                        st.write(q['answer'])
+                        # 這裡套用排版函式
+                        st.write(format_display_text(q['answer']))
 
     # ------------------------------------------
-    # 模式 B：逐題顯示 (互動打字測驗)
+    # 模式 B：逐題顯示
     # ------------------------------------------
     elif display_mode == "逐題顯示":
         if st.session_state.current_idx >= total_q:
@@ -178,21 +186,16 @@ def main():
 
         current_q = st.session_state.test_questions[st.session_state.current_idx]
         st.progress(st.session_state.current_idx / total_q, text=f"進度：{st.session_state.current_idx + 1} / {total_q}")
-
+        
         with st.container(border=True):
             st.subheader(f"💡 題目：{current_q['question']}")
             st.caption(f"原題號：{current_q['id']}")
-
-            # 如果有回饋訊息，印出來讓使用者看對錯
+            
             if st.session_state.feedback:
-                if "✅" in st.session_state.feedback:
-                    st.success(st.session_state.feedback)
-                else:
-                    st.error(st.session_state.feedback)
+                if "✅" in st.session_state.feedback: st.success(st.session_state.feedback)
+                else: st.error(st.session_state.feedback)
 
-            # 邏輯分岔：還沒答題 vs 已經答題
             if not st.session_state.has_answered:
-                # 狀態 1：還沒答題，顯示輸入框與送出按鈕
                 with st.form(key='one_by_one_form', clear_on_submit=False):
                     user_ans = st.text_area("📝 輸入答案：", height=100)
                     if st.form_submit_button("📤 送出答案"):
@@ -204,27 +207,26 @@ def main():
                                 st.session_state.score += 1
                                 st.session_state.feedback = f"✅ **答對了！** {msg}"
                             else:
-                                st.session_state.feedback = f"❌ **答錯了！**\n\n📌 標準答案：{current_q['answer']}"
-
-                            # 標記為已答題，並重新整理畫面 (不會自動跳下一題了)
+                                # 這裡套用排版函式
+                                st.session_state.feedback = f"❌ **答錯了！**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
+                            
                             st.session_state.has_answered = True
                             st.rerun()
             else:
-                # 狀態 2：已經答題，顯示「前往下一題」的按鈕
                 if st.button("⏭️ 前往下一題", type="primary", use_container_width=True):
-                    # 把狀態重置，跳到下一題
                     st.session_state.current_idx += 1
                     st.session_state.has_answered = False
                     st.session_state.feedback = ""
                     st.rerun()
 
-            # 偷看答案的功能保留
             with st.expander("🫣 想不起來？點我偷看答案 (不計分)"):
-                st.info(current_q['answer'])
+                # 這裡套用排版函式
+                st.info(format_display_text(current_q['answer']))
                 if st.button("⏭️ 直接跳下一題"):
+                    # 這裡套用排版函式
+                    st.session_state.feedback = f"⏭️ **已跳過該題。**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
                     st.session_state.current_idx += 1
                     st.session_state.has_answered = False
-                    st.session_state.feedback = ""
                     st.rerun()
 
     # ------------------------------------------
@@ -240,7 +242,8 @@ def main():
             st.markdown(f"### 🤔 {st.session_state.flashcard_q['question']}")
             st.divider()
             if st.session_state.flashcard_flipped:
-                st.success(f"**標準答案：**\n\n{st.session_state.flashcard_q['answer']}")
+                # 這裡套用排版函式
+                st.success(f"**標準答案：**\n\n{format_display_text(st.session_state.flashcard_q['answer'])}")
             else:
                 st.write("\n\n*(默念答案後點擊翻開)*\n\n")
 
@@ -255,22 +258,5 @@ def main():
                 st.session_state.flashcard_flipped = False
                 st.rerun()
 
-
 if __name__ == "__main__":
     main()
-
-# ======== 進階版：音樂點歌機 ========
-        st.divider()
-        st.subheader("🎵 測驗電台")
-        
-        # 自動掃描資料夾內所有的 .mp3 檔案
-        mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
-        
-        if mp3_files:
-            # 建立一個下拉選單讓使用者「點歌」
-            selected_song = st.selectbox("選擇歌曲：", mp3_files)
-            
-            # 播放使用者選中的那首歌
-            st.audio(selected_song, format="audio/mp3", loop=True)
-        else:
-            st.caption("找不到任何 MP3 音樂檔案")
