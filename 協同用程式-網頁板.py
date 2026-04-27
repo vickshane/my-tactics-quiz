@@ -147,4 +147,155 @@ def main():
         st.info("💡 點擊下方連結即可快速跳轉！")
         
         # 固定提供回到最上方的按鈕
-        st.markdown("### 🔝
+        st.markdown("### 🔝 [回最上方 (設定面板)](#nav-settings)", unsafe_allow_html=True)
+        
+        # 如果是「全部顯示」模式且有題目，才顯示各題目的跳轉連結
+        if st.session_state.test_questions and display_mode == "全部顯示":
+            st.divider()
+            st.markdown("### 📝 跳至特定題目")
+            
+            # 將題號變成超連結陣列
+            nav_links = []
+            for idx, q in enumerate(st.session_state.test_questions, 1):
+                # 這裡顯示的是測驗的「順序第幾題」，並用標籤連到原題號
+                nav_links.append(f"[{idx}](#nav-q-{q['id']})")
+                
+            # 用 markdown 顯示成一個漂亮的數字排版陣列
+            st.markdown(" ｜ ".join(nav_links))
+
+    # ==========================================
+    # 主畫面測驗區塊
+    # ==========================================
+    if not st.session_state.test_questions:
+        st.info("👆 請在上方設定面板選擇範圍與模式，然後點擊「載入 / 重置題目」開始測驗。")
+        return
+
+    total_q = len(st.session_state.test_questions)
+
+    # ------------------------------------------
+    # 模式 A：全部顯示
+    # ------------------------------------------
+    if display_mode == "全部顯示":
+        st.subheader(f"📝 全部顯示模式 (共 {total_q} 題)")
+        
+        for idx, q in enumerate(st.session_state.test_questions, 1):
+            
+            # ====== 替每一題埋設隱形錨點 ======
+            st.markdown(f"<div id='nav-q-{q['id']}'></div>", unsafe_allow_html=True)
+            # =================================
+            
+            with st.container(border=True):
+                st.markdown(f"**第 {idx} 題** (原題號: {q['id']})")
+                st.write(f"💡 **{q['question']}**")
+                
+                input_key = f"input_{st.session_state.current_bank_name}_{q['id']}"
+                saved_val = st.session_state.all_inputs.get(input_key, "")
+                
+                with st.form(key=f"form_{q['id']}", clear_on_submit=False):
+                    user_val = st.text_area("您的答案：", value=saved_val, height=80)
+                    submit_q = st.form_submit_button("📤 送出答案")
+                    
+                    if submit_q:
+                        st.session_state.all_inputs[input_key] = user_val
+                        if not user_val.strip():
+                            st.warning("請輸入內容後再送出。")
+                        else:
+                            is_correct, msg = check_answer(user_val, q['answer'])
+                            if is_correct:
+                                st.success(f"✅ {msg}")
+                            else:
+                                st.error("❌ 答錯了！")
+                                st.info(f"📌 **標準答案：**\n\n{format_display_text(q['answer'])}")
+                
+                if not submit_q:
+                    with st.expander("👁️ 快速查看標準答案"):
+                        st.write(format_display_text(q['answer']))
+
+    # ------------------------------------------
+    # 模式 B：逐題顯示
+    # ------------------------------------------
+    elif display_mode == "逐題顯示":
+        if st.session_state.current_idx >= total_q:
+            st.balloons()
+            st.success("🏆 測驗結束！")
+            st.metric(label="最終成績", value=f"{st.session_state.score} / {total_q} 題")
+            if st.button("🔄 重新測驗"):
+                st.session_state.current_idx = 0
+                st.session_state.score = 0
+                st.session_state.feedback = ""
+                st.session_state.has_answered = False
+                st.rerun()
+            return
+
+        current_q = st.session_state.test_questions[st.session_state.current_idx]
+        st.progress(st.session_state.current_idx / total_q, text=f"進度：{st.session_state.current_idx + 1} / {total_q}")
+        
+        with st.container(border=True):
+            st.subheader(f"💡 題目：{current_q['question']}")
+            st.caption(f"原題號：{current_q['id']}")
+            
+            if st.session_state.feedback:
+                if "✅" in st.session_state.feedback: st.success(st.session_state.feedback)
+                else: st.error(st.session_state.feedback)
+
+            if not st.session_state.has_answered:
+                with st.form(key='one_by_one_form', clear_on_submit=False):
+                    user_ans = st.text_area("📝 輸入答案：", height=100)
+                    if st.form_submit_button("📤 送出答案"):
+                        if not user_ans.strip():
+                            st.warning("請先輸入答案再送出喔！")
+                        else:
+                            is_correct, msg = check_answer(user_ans, current_q['answer'])
+                            if is_correct:
+                                st.session_state.score += 1
+                                st.session_state.feedback = f"✅ **答對了！** {msg}"
+                            else:
+                                st.session_state.feedback = f"❌ **答錯了！**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
+                            
+                            st.session_state.has_answered = True
+                            st.rerun()
+            else:
+                if st.button("⏭️ 前往下一題", type="primary", use_container_width=True):
+                    st.session_state.current_idx += 1
+                    st.session_state.has_answered = False
+                    st.session_state.feedback = ""
+                    st.rerun()
+
+            with st.expander("🫣 想不起來？點我偷看答案 (不計分)"):
+                st.info(format_display_text(current_q['answer']))
+                if st.button("⏭️ 直接跳下一題"):
+                    st.session_state.feedback = f"⏭️ **已跳過該題。**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
+                    st.session_state.current_idx += 1
+                    st.session_state.has_answered = False
+                    st.rerun()
+
+    # ------------------------------------------
+    # 模式 C：字卡模式
+    # ------------------------------------------
+    elif display_mode == "字卡模式":
+        st.subheader("📇 隨機字卡")
+        if st.session_state.flashcard_q is None:
+            st.session_state.flashcard_q = random.choice(st.session_state.test_questions)
+            st.session_state.flashcard_flipped = False
+
+        with st.container(border=True):
+            st.markdown(f"### 🤔 {st.session_state.flashcard_q['question']}")
+            st.divider()
+            if st.session_state.flashcard_flipped:
+                st.success(f"**標準答案：**\n\n{format_display_text(st.session_state.flashcard_q['answer'])}")
+            else:
+                st.write("\n\n*(默念答案後點擊翻開)*\n\n")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 翻開字卡", use_container_width=True) and not st.session_state.flashcard_flipped:
+                st.session_state.flashcard_flipped = True
+                st.rerun()
+        with col2:
+            if st.button("⏭️ 抽下一題", use_container_width=True, type="primary"):
+                st.session_state.flashcard_q = random.choice(st.session_state.test_questions)
+                st.session_state.flashcard_flipped = False
+                st.rerun()
+
+if __name__ == "__main__":
+    main()
