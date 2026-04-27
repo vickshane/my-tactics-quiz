@@ -56,10 +56,10 @@ def main():
     # ====== 魔法 CSS：強制縮窄側邊欄寬度 ======
     st.markdown("""
         <style>
-            /* 調整側邊欄的寬度 (預設大概是 300px 以上，這裡縮窄到 220px) */
+            /* 將側邊欄的寬度進一步縮小到 150px */
             [data-testid="stSidebar"] {
-                min-width: 220px !important;
-                max-width: 220px !important;
+                min-width: 150px !important;
+                max-width: 150px !important;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -161,15 +161,15 @@ def main():
     st.divider()
 
     # ==========================================
-    # 側邊導覽列整合區塊
+    # 側邊導覽列整合區塊 (電梯)
     # ==========================================
     if st.session_state.test_questions:
         total_q = len(st.session_state.test_questions)
         
         with st.sidebar:
-            st.header("🛗 快速導覽")
+            st.header("🛗 導覽")
             
-            # 🌟 修改點：將 flex-direction 改為 column，讓按鈕變成「上下排列」
+            # TOP 與 END 上下排列
             st.markdown("""
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
                 <a href="#nav-settings" style="text-align: center; padding: 10px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">🔼 TOP</a>
@@ -179,26 +179,24 @@ def main():
 
             if display_mode == "全部顯示":
                 st.divider()
-                st.header("📝 快速跳轉")
-                st.info(f"共 {total_q} 題，請輸入題號跳轉。")
+                st.markdown("##### 📝 跳轉")
                 
-                jump_idx = st.number_input("前往第幾題：", min_value=1, max_value=total_q, value=1)
+                jump_idx = st.number_input("輸入題號：", min_value=1, max_value=total_q, value=1)
                 jump_q_id = st.session_state.test_questions[jump_idx - 1]['id']
                 
                 st.markdown(f"""
                 <a href="#nav-q-{jump_q_id}" style="
                     display: block;
-                    padding: 10px;
+                    padding: 8px;
                     background-color: #ff4b4b;
                     color: white;
                     text-align: center;
                     border-radius: 8px;
                     text-decoration: none;
                     font-weight: bold;
-                    margin-top: 10px;
-                ">🚀 跳轉至第 {jump_idx} 題</a>
+                    margin-top: 5px;
+                ">🚀 GO</a>
                 """, unsafe_allow_html=True)
-
 
     # ==========================================
     # 主畫面測驗區塊
