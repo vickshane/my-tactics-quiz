@@ -37,11 +37,13 @@ def check_answer(user_input, correct_answer):
     norm_user = normalize_text(user_input)
     norm_ans = normalize_text(correct_answer)
     
+    # 1. 嚴格比對：輸入內容必須完整包含標準答案 (不能少字、錯字，但多打字沒關係)
     if norm_ans in norm_user:
         return True, "完全正確！"
         
+    # 2. 模糊比對機制 (已調高嚴格度至 0.99，幾乎不允許錯字漏字)
     similarity = difflib.SequenceMatcher(None, norm_ans, norm_user).ratio()
-    if similarity >= 0.8:
+    if similarity >= 0.99:
         return True, f"算你對！(相似度 {similarity:.0%}，有少許錯漏字)"
         
     return False, ""
