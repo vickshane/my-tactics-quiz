@@ -104,22 +104,22 @@ def main():
         
         # 🎵 音樂電台區塊 (純粹的 SoundCloud 點歌機)
         with col_music:
-            st.markdown("##### 🎵 專屬電台 (SoundCloud)")
+            st.markdown("##### 🎵 阿逄專屬電台 (SoundCloud)")
             
             # =========================================================
             # 🌟 你的專屬歌單字典在這裡！請手動替換底下的文字與網址
             # =========================================================
             sc_playlist = {
-                "🎵 1.序章：錄取通知": "https://on.soundcloud.com/SuQUOSua5SRiIKbvtB",
-                "🎵 2.正規班的早晨": "https://on.soundcloud.com/krQbnd92jXg2mosfUh",
-                "🎵 3.向前的路": "https://on.soundcloud.com/G5Yi8JW6n6DAe2WARq",
-                "🎵 4.我們這一班": "https://on.soundcloud.com/vSvL65CWAqTDxUZOSl",
-                "🎵 5.第一次出任務": "https://on.soundcloud.com/VQ4m1h0NMCnm0iZvHH",
-                "🎵 6.不敢說的名字": "https://on.soundcloud.com/iuNne5yfFoHpb2kyMo",
-                "🎵 7.笑著面對風暴": "https://on.soundcloud.com/CGqfruknQP9E5Y9MML",
-                "🎵 8.銀河之巔": "https://on.soundcloud.com/Sv4E4rUIGqan0n7Qy0",
-                "🎵 9.總司令之前的那一夜": "https://on.soundcloud.com/g4VkujKroEA5BxI21c",
-                "🎵 10.名字會留下": "https://on.soundcloud.com/IPPO2ahlDs8vfnXC0v",
+                "🎵 1.序章：錄取通知": "https://soundcloud.com/little-oysters/xu-zhang-lu-qu-tong-zhi-1?in=little-oysters/sets/take-me-home-galaxy-roads&si=5ca9e416404b4ac098ebe56c304c34a4&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 2.正規班的早晨": "https://soundcloud.com/little-oysters/zheng-gui-ban-de-zao-chen-2?in=little-oysters/sets/take-me-home-galaxy-roads&si=b5addeb594034455810e800eba060259&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 3.向前的路": "https://soundcloud.com/little-oysters/xiang-qian-de-lu-3?in=little-oysters/sets/take-me-home-galaxy-roads&si=6b459a4cb5324ac5ab4d098a97d02690&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 4.我們這一班": "https://soundcloud.com/little-oysters/wo-men-zhe-yi-ban-4?in=little-oysters/sets/take-me-home-galaxy-roads&si=a49996766f0847918e8b75d8e48afeef&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 5.第一次出任務": "https://soundcloud.com/little-oysters/di-yi-ci-chu-ren-wu-5?in=little-oysters/sets/take-me-home-galaxy-roads&si=5454e24f8e754d7ca128604e6637ca50&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 6.不敢說的名字": "https://soundcloud.com/little-oysters/bu-gan-shuo-de-ming-zi-6?in=little-oysters/sets/take-me-home-galaxy-roads&si=672fe571846a40c68f085be1d2af424d&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 7.笑著面對風暴": "https://soundcloud.com/little-oysters/xiao-zhu-mian-dui-feng-bao-7?in=little-oysters/sets/take-me-home-galaxy-roads&si=01e67e39f0634bf581481c9a52ec0ea3&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 8.銀河之巔": "https://soundcloud.com/little-oysters/yin-he-zhi-dian-a-pang-chuan-8?in=little-oysters/sets/take-me-home-galaxy-roads&si=3f3f94d12b0d49a7922619b16b0107ce&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 9.總司令之前的那一夜": "https://soundcloud.com/little-oysters/zong-si-ling-zhi-qian-de-na-yi-ye-9?in=little-oysters/sets/take-me-home-galaxy-roads&si=4c6b7f07bb2140e1927f947a67be7e17&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                "🎵 10.名字會留下": "https://soundcloud.com/little-oysters/ming-zi-hui-liu-xia-10?in=little-oysters/sets/take-me-home-galaxy-roads&si=49a0def3c35e4c609c34360f7f9f7332&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
                 "手動貼上其他網址...": "custom"
             }
             # =========================================================
