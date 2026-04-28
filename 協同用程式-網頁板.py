@@ -3,6 +3,7 @@ import random
 import re
 import os
 import difflib
+import urllib.parse # 新增：用來轉換 SoundCloud 網址格式的套件
 
 # --- 1. 核心邏輯函式 ---
 def load_questions_from_file(filename):
@@ -56,12 +57,9 @@ def main():
     # ====== 魔法 CSS：修復側邊欄隱藏與主畫面延伸問題 ======
     st.markdown("""
         <style>
-            /* 1. 讓側邊欄最寬只能是 150px，但保留它「縮小到 0 (隱藏)」的能力 */
             [data-testid="stSidebar"] {
                 max-width: 150px !important;
             }
-            
-            /* 2. 強制主畫面區塊伸展到最大，吃掉隱藏側邊欄後剩下的所有空白 */
             .block-container {
                 max-width: 100% !important;
                 padding-left: 2rem !important;
@@ -104,28 +102,42 @@ def main():
         st.subheader("⚙️ 測驗與音樂設定面板")
         col_music, col_quiz = st.columns([1, 2])
         
-        # 🎵 音樂電台區塊
+        # 🎵 音樂電台區塊 (加入 SoundCloud)
         with col_music:
             st.markdown("##### 🎵 測驗電台")
-            music_mode = st.radio("選擇音樂來源：", ["本機 MP3", "YouTube 連續播放"], horizontal=True, label_visibility="collapsed")
+            music_mode = st.radio("選擇音樂來源：", ["本機 MP3", "YouTube", "SoundCloud"], horizontal=True, label_visibility="collapsed")
             
             if music_mode == "本機 MP3":
                 mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
                 if mp3_files:
                     selected_song = st.selectbox("選擇歌曲：", mp3_files)
                     st.audio(selected_song, format="audio/mp3", autoplay=True, loop=True)
-                    st.caption("⚠️ 受限於網頁技術，MP3 無法自動切換下一首，建議將歌曲合併成一首長檔。")
+                    st.caption("⚠️ MP3 無法自動切換下一首，建議合併成一首長檔。")
                 else:
                     st.caption("找不到任何 MP3 音樂檔案")
                     
-            elif music_mode == "YouTube 連續播放":
-                st.caption("完美支援連續播放！請輸入 YouTube 影片代碼：")
-                yt_id = st.text_input("YouTube ID (預設為 Lofi 讀書音樂)", value="jfKfPfyJRdk")
+            elif music_mode == "YouTube":
+                st.caption("請輸入 YouTube 影片代碼：")
+                yt_id = st.text_input("YouTube ID", value="jfKfPfyJRdk")
                 if yt_id:
                     iframe_code = f"""
                     <iframe width="100%" height="100" src="https://www.youtube.com/embed/{yt_id}?autoplay=1&loop=1&playlist={yt_id}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                     """
                     st.markdown(iframe_code, unsafe_allow_html=True)
+                    
+            elif music_mode == "SoundCloud":
+                st.caption("🎧 播放你的專屬歌單：")
+                # 預設為你提供的專屬 SoundCloud 連結
+                sc_url = st.text_input("SoundCloud 連結", value="https://soundcloud.com/little-oysters/sets/take-me-home-galaxy-roads")
+                if sc_url:
+                    # 將網址轉換為 SoundCloud 播放器看得懂的編碼格式
+                    encoded_url = urllib.parse.quote(sc_url)
+                    sc_iframe = f"""
+                    <iframe width="100%" height="250" scrolling="no" frameborder="no" allow="autoplay"
+                    src="https://w.soundcloud.com/player/?url={encoded_url}&color=%23ff5500&auto_play=true&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true">
+                    </iframe>
+                    """
+                    st.markdown(sc_iframe, unsafe_allow_html=True)
                 
         # 📚 測驗設定區塊
         with col_quiz:
