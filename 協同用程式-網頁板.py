@@ -125,7 +125,7 @@ def main():
             # =========================================================
             
             # 🌟 這裡加入了 index=8，代表預設選擇清單中的第 9 個項目（也就是第 8 首歌）
-            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()), index=8)
+            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()), index=7)
             
             if selected_song_name == "手動貼上其他網址...":
                 sc_url = st.text_input("請輸入 SoundCloud 連結：", value="")
