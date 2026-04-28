@@ -28,7 +28,8 @@ def load_questions_from_file(filename):
     return questions_data
 
 def normalize_text(text):
-    text = re.sub(r'\d+[、.]\s*', '', text)
+    # 🌟 升級版過濾器：可以同時消除 1.、1、、(1)、1) 等各種題號格式
+    text = re.sub(r'\(?\d+[)）、.]\s*', '', text)
     text = re.sub(r'[^\w]', '', text)
     return text
 
@@ -271,6 +272,9 @@ def main():
                             is_correct, msg = check_answer(user_val, q['answer'])
                             if is_correct:
                                 st.success(f"✅ {msg}")
+                                # 🌟 如果是「算你對」，就在下方補上標準答案
+                                if "算你對" in msg:
+                                    st.info(f"📌 **標準答案：**\n\n{format_display_text(q['answer'])}")
                             else:
                                 st.error("❌ 答錯了！")
                                 st.info(f"📌 **標準答案：**\n\n{format_display_text(q['answer'])}")
@@ -316,6 +320,9 @@ def main():
                                 if is_correct:
                                     st.session_state.score += 1
                                     st.session_state.feedback = f"✅ **答對了！** {msg}"
+                                    # 🌟 如果是「算你對」，在正確訊息下方拼接標準答案
+                                    if "算你對" in msg:
+                                        st.session_state.feedback += f"\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
                                 else:
                                     st.session_state.feedback = f"❌ **答錯了！**\n\n📌 **標準答案：**\n\n{format_display_text(current_q['answer'])}"
                                 
