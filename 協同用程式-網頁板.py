@@ -3,7 +3,7 @@ import random
 import re
 import os
 import difflib
-import urllib.parse # 新增：用來轉換 SoundCloud 網址格式的套件
+import urllib.parse
 
 # --- 1. 核心邏輯函式 ---
 def load_questions_from_file(filename):
@@ -102,47 +102,56 @@ def main():
         st.subheader("⚙️ 測驗與音樂設定面板")
         col_music, col_quiz = st.columns([1, 2])
         
-        # 🎵 音樂電台區塊 (加入 SoundCloud)
+        # 🎵 音樂電台區塊 (純粹的 SoundCloud 點歌機)
         with col_music:
-            st.markdown("##### 🎵 測驗電台")
-            music_mode = st.radio("選擇音樂來源：", ["本機 MP3", "YouTube", "SoundCloud"], horizontal=True, label_visibility="collapsed")
+            st.markdown("##### 🎵 專屬電台 (SoundCloud)")
             
-            if music_mode == "本機 MP3":
-                mp3_files = [f for f in os.listdir('.') if f.endswith('.mp3')]
-                if mp3_files:
-                    selected_song = st.selectbox("選擇歌曲：", mp3_files)
-                    st.audio(selected_song, format="audio/mp3", autoplay=True, loop=True)
-                    st.caption("⚠️ MP3 無法自動切換下一首，建議合併成一首長檔。")
-                else:
-                    st.caption("找不到任何 MP3 音樂檔案")
-                    
-            elif music_mode == "YouTube":
-                st.caption("請輸入 YouTube 影片代碼：")
-                yt_id = st.text_input("YouTube ID", value="jfKfPfyJRdk")
-                if yt_id:
-                    iframe_code = f"""
-                    <iframe width="100%" height="100" src="https://www.youtube.com/embed/{yt_id}?autoplay=1&loop=1&playlist={yt_id}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    """
-                    st.markdown(iframe_code, unsafe_allow_html=True)
-                    
-            elif music_mode == "SoundCloud":
-                st.caption("🎧 播放你的專屬歌單：")
-                # 預設為你提供的專屬 SoundCloud 連結
-                sc_url = st.text_input("SoundCloud 連結", value="https://soundcloud.com/little-oysters/sets/take-me-home-galaxy-roads")
-                if sc_url:
-                    # 將網址轉換為 SoundCloud 播放器看得懂的編碼格式
-                    encoded_url = urllib.parse.quote(sc_url)
-                    sc_iframe = f"""
-                    <iframe width="100%" height="250" scrolling="no" frameborder="no" allow="autoplay"
-                    src="https://w.soundcloud.com/player/?url={encoded_url}&color=%23ff5500&auto_play=true&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true">
-                    </iframe>
-                    """
-                    st.markdown(sc_iframe, unsafe_allow_html=True)
+            # 🌟 你的專屬歌單字典在這裡！
+            # 格式為 "顯示在選單上的名稱": "SoundCloud 的網址"
+            sc_playlist = {
+                "【完整專輯】Take me home galaxy roads": "https://soundcloud.com/little-oysters/sets/take-me-home-galaxy-roads",
+                "【單曲】歌名 1 (請替換為真實網址)": "https://soundcloud.com/little-oysters/...",
+                "【單曲】歌名 2 (請替換為真實網址)": "https://soundcloud.com/little-oysters/...",
+                "手動貼上其他網址...": "custom"
+            }
+            
+            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()))
+            
+            if selected_song_name == "手動貼上其他網址...":
+                sc_url = st.text_input("請輸入 SoundCloud 連結：", value="")
+            else:
+                sc_url = sc_playlist[selected_song_name]
+                
+            if sc_url:
+                encoded_url = urllib.parse.quote(sc_url)
+                # 播放器高度設為 166，這是 SoundCloud 單曲最經典的窄版播放器尺寸
+                sc_iframe = f"""
+                <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+                src="https://w.soundcloud.com/player/?url={encoded_url}&color=%23ff5500&auto_play=true&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true">
+                </iframe>
+                """
+                st.markdown(sc_iframe, unsafe_allow_html=True)
+            else:
+                st.caption("請選擇或輸入一首歌曲來播放。")
                 
         # 📚 測驗設定區塊
         with col_quiz:
             st.markdown("##### 📚 題庫與模式設定")
-            selected_bank = st.selectbox("選擇班隊 (題庫)：", list(bank_mapping.keys()), label_visibility="collapsed")
+            
+            bank_names = list(bank_mapping.keys())
+            
+            # 🌟 將「軍官正規班」強制移到選單第一位 (預設值)
+            target_bank = None
+            for name in bank_names:
+                if "軍官正規班" in name:
+                    target_bank = name
+                    break
+            
+            if target_bank:
+                bank_names.remove(target_bank)
+                bank_names.insert(0, target_bank) # 插入到陣列的最前面
+                
+            selected_bank = st.selectbox("選擇班隊 (題庫)：", bank_names, label_visibility="collapsed")
             selected_file = bank_mapping[selected_bank]
             all_questions = load_questions_from_file(selected_file)
             
