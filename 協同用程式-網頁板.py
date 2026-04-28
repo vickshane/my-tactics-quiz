@@ -119,7 +119,8 @@ def main():
                 "🎵 7.笑著面對風暴": "https://on.soundcloud.com/CGqfruknQP9E5Y9MML",
                 "🎵 8.銀河之巔": "https://on.soundcloud.com/Sv4E4rUIGqan0n7Qy0",
                 "🎵 9.總司令之前的那一夜": "https://on.soundcloud.com/g4VkujKroEA5BxI21c",
-                "🎵 10.名字會留下": "https://on.soundcloud.com/IPPO2ahlDs8vfnXC0v"
+                "🎵 10.名字會留下": "https://on.soundcloud.com/IPPO2ahlDs8vfnXC0v",
+                "手動貼上其他網址...": "custom"
             }
             # =========================================================
             
