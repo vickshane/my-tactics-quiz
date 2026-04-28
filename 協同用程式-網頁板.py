@@ -106,31 +106,41 @@ def main():
         with col_music:
             st.markdown("##### 🎵 專屬電台 (SoundCloud)")
             
-            # 🌟 你的專屬歌單字典在這裡！
-            # 格式為 "顯示在選單上的名稱": "SoundCloud 的網址"
+            # =========================================================
+            # 🌟 你的專屬歌單字典在這裡！請手動替換底下的文字與網址
+            # =========================================================
             sc_playlist = {
-                "【完整專輯】Take me home galaxy roads": "https://soundcloud.com/little-oysters/sets/take-me-home-galaxy-roads",
-                "【單曲】歌名 1 (請替換為真實網址)": "https://soundcloud.com/little-oysters/...",
-                "【單曲】歌名 2 (請替換為真實網址)": "https://soundcloud.com/little-oysters/...",
-                "手動貼上其他網址...": "custom"
+                "🎵 1.序章：錄取通知": "https://on.soundcloud.com/SuQUOSua5SRiIKbvtB",
+                "🎵 2.正規班的早晨": "https://on.soundcloud.com/krQbnd92jXg2mosfUh",
+                "🎵 3.向前的路": "https://on.soundcloud.com/G5Yi8JW6n6DAe2WARq",
+                "🎵 4.我們這一班": "https://on.soundcloud.com/vSvL65CWAqTDxUZOSl",
+                "🎵 5.第一次出任務": "https://on.soundcloud.com/VQ4m1h0NMCnm0iZvHH",
+                "🎵 6.不敢說的名字": "https://on.soundcloud.com/iuNne5yfFoHpb2kyMo",
+                "🎵 7.笑著面對風暴": "https://on.soundcloud.com/CGqfruknQP9E5Y9MML",
+                "🎵 8.銀河之巔": "https://on.soundcloud.com/Sv4E4rUIGqan0n7Qy0",
+                "🎵 9.總司令之前的那一夜": "https://on.soundcloud.com/g4VkujKroEA5BxI21c",
+                "🎵 10.名字會留下": "https://on.soundcloud.com/IPPO2ahlDs8vfnXC0v"
             }
+            # =========================================================
             
-            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()))
+            # 🌟 這裡加入了 index=8，代表預設選擇清單中的第 9 個項目（也就是第 8 首歌）
+            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()), index=8)
             
             if selected_song_name == "手動貼上其他網址...":
                 sc_url = st.text_input("請輸入 SoundCloud 連結：", value="")
             else:
                 sc_url = sc_playlist[selected_song_name]
                 
-            if sc_url:
+            if sc_url and sc_url != "網址請貼這":
                 encoded_url = urllib.parse.quote(sc_url)
-                # 播放器高度設為 166，這是 SoundCloud 單曲最經典的窄版播放器尺寸
                 sc_iframe = f"""
                 <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
                 src="https://w.soundcloud.com/player/?url={encoded_url}&color=%23ff5500&auto_play=true&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true">
                 </iframe>
                 """
                 st.markdown(sc_iframe, unsafe_allow_html=True)
+            elif sc_url == "網址請貼這":
+                st.caption("請去程式碼把這首歌的真實網址貼上喔！")
             else:
                 st.caption("請選擇或輸入一首歌曲來播放。")
                 
@@ -149,7 +159,7 @@ def main():
             
             if target_bank:
                 bank_names.remove(target_bank)
-                bank_names.insert(0, target_bank) # 插入到陣列的最前面
+                bank_names.insert(0, target_bank)
                 
             selected_bank = st.selectbox("選擇班隊 (題庫)：", bank_names, label_visibility="collapsed")
             selected_file = bank_mapping[selected_bank]
