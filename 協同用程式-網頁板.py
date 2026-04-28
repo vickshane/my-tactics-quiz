@@ -110,6 +110,7 @@ def main():
             # 🌟 你的專屬歌單字典在這裡！請手動替換底下的文字與網址
             # =========================================================
             sc_playlist = {
+                "💿 【完整專輯】Take me home galaxy roads": "https://soundcloud.com/little-oysters/sets/take-me-home-galaxy-roads",
                 "🎵 1.序章：錄取通知": "https://soundcloud.com/little-oysters/xu-zhang-lu-qu-tong-zhi-1?in=little-oysters/sets/take-me-home-galaxy-roads&si=5ca9e416404b4ac098ebe56c304c34a4&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
                 "🎵 2.正規班的早晨": "https://soundcloud.com/little-oysters/zheng-gui-ban-de-zao-chen-2?in=little-oysters/sets/take-me-home-galaxy-roads&si=b5addeb594034455810e800eba060259&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
                 "🎵 3.向前的路": "https://soundcloud.com/little-oysters/xiang-qian-de-lu-3?in=little-oysters/sets/take-me-home-galaxy-roads&si=6b459a4cb5324ac5ab4d098a97d02690&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
@@ -125,7 +126,7 @@ def main():
             # =========================================================
             
             # 🌟 這裡加入了 index=8，代表預設選擇清單中的第 9 個項目（也就是第 8 首歌）
-            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()), index=7)
+            selected_song_name = st.selectbox("🎧 選擇你想聽的歌曲：", list(sc_playlist.keys()), index=8)
             
             if selected_song_name == "手動貼上其他網址...":
                 sc_url = st.text_input("請輸入 SoundCloud 連結：", value="")
